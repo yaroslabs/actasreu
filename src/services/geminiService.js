@@ -44,9 +44,12 @@ Si las notas no mencionan algo para una sección, escribe 'Sin información para
 
   let response
   try {
-    response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    response = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
+      },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {

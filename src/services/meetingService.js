@@ -1,0 +1,71 @@
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  getDoc,
+  query,
+  where,
+  serverTimestamp,
+} from 'firebase/firestore'
+import { db } from '../config/firebase'
+
+const COL = 'meetings'
+
+export async function createMeeting(userId, data) {
+  return addDoc(collection(db, COL), {
+    ...data,
+    userId,
+    status: 'draft',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function updateMeeting(id, data) {
+  return updateDoc(doc(db, COL, id), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function deleteMeeting(id) {
+  return deleteDoc(doc(db, COL, id))
+}
+
+export async function getMeetings(userId) {
+  const q = query(
+    collection(db, COL),
+    where('userId', '==', userId)
+  )
+  const snap = await getDocs(q)
+  const meetings = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  // Ordenar por createdAt en JavaScript (más reciente primero)
+  return meetings.sort((a, b) => {
+    const timeA = a.createdAt?.toMillis?.() || 0
+    const timeB = b.createdAt?.toMillis?.() || 0
+    return timeB - timeA
+  })
+}
+
+export async function getMeetingsByProject(projectId) {
+  const q = query(
+    collection(db, COL),
+    where('projectId', '==', projectId)
+  )
+  const snap = await getDocs(q)
+  const meetings = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  // Ordenar por createdAt en JavaScript (más reciente primero)
+  return meetings.sort((a, b) => {
+    const timeA = a.createdAt?.toMillis?.() || 0
+    const timeB = b.createdAt?.toMillis?.() || 0
+    return timeB - timeA
+  })
+}
+
+export async function getMeeting(id) {
+  const snap = await getDoc(doc(db, COL, id))
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+}
